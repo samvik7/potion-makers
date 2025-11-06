@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import Inventory from "./pages/Inventory";
-import RecipeBook from "./pages/RecipeBook";
+import RecipeBook from "./pages/Recipebook";
 import AuthPages from "./pages/AuthPages";
 import Header from "./components/Header";
 import { AuthProvider } from "./utils/authProvider";
