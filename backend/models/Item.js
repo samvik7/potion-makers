@@ -5,7 +5,6 @@ const ItemSchema = new Schema({
   name: { 
     type: String, 
     required: true, 
-    // Ensures no two items can have the same name.
     unique: true 
   },
   type: { 
@@ -16,7 +15,6 @@ const ItemSchema = new Schema({
   basePrice: { 
     type: Number, 
     default: 1,
-    // Ensures an item's price can't be a negative number.
     min: 0 
   },
   description: { 

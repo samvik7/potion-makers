@@ -1,5 +1,5 @@
 import express from 'express';
-import mongoose from 'mongoose'; 
+import mongoose from 'mongoose';
 import { authRequired } from '../middleware/authMiddleware.js';
 import Inventory from '../models/Inventory.js';
 import Item from '../models/Item.js';
@@ -12,12 +12,10 @@ function signatureFromCombo(combo) {
   return combo.map(c => `${c.itemId}:${c.qty}`).sort().join('|');
 }
 
-// GET /api/game/gamestate
 router.get('/gamestate', authRequired, async (req, res) => {
   try {
     const userId = req.userId;
     const user = await User.findById(userId).select('-passwordHash').lean();
-    //Use 'quantity' for consistency
     const inventory = await Inventory.find({ user: userId }).populate('item').lean();
     const discovered = await Recipe.find({ _id: { $in: user.discoveredRecipes || [] } }).lean();
     res.json({
@@ -27,13 +25,21 @@ router.get('/gamestate', authRequired, async (req, res) => {
     });
   } catch (err) {
     console.error('gamestate', err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error fetching game state' });
   }
 });
 
-// POST /api/game/craft
+router.get('/shop-items', authRequired, async (req, res) => {
+  try {
+    const itemsForSale = await Item.find({ type: 'Ingredient' }).sort({ basePrice: 1 }).lean();
+    res.json(itemsForSale);
+  } catch (err) {
+    console.error('shop-items', err);
+    res.status(500).json({ error: 'Server error fetching shop items' });
+  }
+});
+
 router.post('/craft', authRequired, async (req, res) => {
-  //Wrap the entire logic in a database transaction 
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -49,47 +55,40 @@ router.post('/craft', authRequired, async (req, res) => {
       return res.json({ success: false, message: 'The mixture did nothing. Try a different combination.' });
     }
 
-    // Check ingredient availability
     for (const c of combo) {
       const inv = await Inventory.findOne({ user: userId, item: c.itemId }).session(session);
-      if (!inv || inv.quantity < c.quantity) { 
+      if (!inv || inv.quantity < c.qty) { 
         return res.status(400).json({ error: 'Not enough ingredients' });
       }
     }
 
-    // Success chance
     if (Math.random() > recipe.chance) {
       return res.json({ success: false, message: 'The mixture fizzled and failed.' });
     }
 
-    // Consume ingredients
     for (const c of combo) {
       await Inventory.findOneAndUpdate(
         { user: userId, item: c.itemId },
-        { $inc: { quantity: -c.quantity } },
+        { $inc: { quantity: -c.qty } },
         { session }
       );
     }
-    // Clean up any inventory items that have zero quantity
     await Inventory.deleteMany({ user: userId, quantity: { $lte: 0 } }).session(session);
 
-    // Give result potion
     await Inventory.findOneAndUpdate(
       { user: userId, item: recipe.resultItem._id },
       { $inc: { quantity: 1 } },
-      { upsert: true, new: true, session } // 'upsert' will create it if it doesn't exist
+      { upsert: true, new: true, session }
     );
 
-    // Update user's discovered recipes and gold
     await User.findByIdAndUpdate(userId, {
-      $addToSet: { discoveredRecipes: recipe._id }, // $addToSet prevents duplicates
+      $addToSet: { discoveredRecipes: recipe._id },
       $inc: { gold: recipe.sellValue || 0 }
     }, { session });
 
-    // If all steps succeeded, commit the transaction
     await session.commitTransaction();
 
-    const user = await User.findById(userId).select('gold'); // Get final gold value
+    const user = await User.findById(userId).select('gold');
     res.json({
       success: true,
       message: `You created ${recipe.resultItem.name}!`,
@@ -98,17 +97,13 @@ router.post('/craft', authRequired, async (req, res) => {
     });
 
   } catch (err) {
-    // If any step failed, abort the transaction, rolling back all changes
     await session.abortTransaction();
     console.error('craft', err);
     res.status(500).json({ error: 'Server error during craft' });
   } finally {
-    // End the session
     session.endSession();
   }
 });
-
-// POST /api/game/buy and /sell routes would be refactored similarly using transactions.
 
 router.post('/buy', authRequired, async (req, res) => {
   const session = await mongoose.startSession();
@@ -126,7 +121,6 @@ router.post('/buy', authRequired, async (req, res) => {
 
     if (user.gold < cost) return res.status(400).json({ error: 'Not enough gold' });
 
-    // Perform both updates
     user.gold -= cost;
     await user.save({ session });
     
@@ -143,6 +137,38 @@ router.post('/buy', authRequired, async (req, res) => {
     await session.abortTransaction();
     console.error('buy', err);
     res.status(500).json({ error: 'Server error during purchase' });
+  } finally {
+    session.endSession();
+  }
+});
+
+router.post('/sell', authRequired, async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const userId = req.userId;
+    const { itemId, qty = 1 } = req.body;
+    const item = await Item.findById(itemId).session(session);
+    if (!item) return res.status(404).json({ error: 'Item not found' });
+
+    const inv = await Inventory.findOne({ user: userId, item: itemId }).session(session);
+    if (!inv || inv.quantity < qty) return res.status(400).json({ error: 'Not enough to sell' });
+
+    const user = await User.findById(userId).session(session);
+    const gain = (item.basePrice || 1) * qty;
+    user.gold += gain;
+    await user.save({ session });
+
+    inv.quantity -= qty;
+    if (inv.quantity <= 0) await inv.deleteOne({ session });
+    else await inv.save({ session });
+
+    await session.commitTransaction();
+    res.json({ ok: true, gold: user.gold });
+  } catch (err) {
+    await session.abortTransaction();
+    console.error('sell', err);
+    res.status(500).json({ error: 'Server error during sell' });
   } finally {
     session.endSession();
   }

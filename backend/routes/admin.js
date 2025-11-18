@@ -6,10 +6,9 @@ import Recipe from '../models/Recipe.js';
 console.log("✅ admin.js loaded!");
 const router = express.Router();
 
-// --- Items ---
+
 
 // GET /api/admin/items - list all items
-// Added adminOnly middleware for security consistency.
 router.get('/items', authRequired, adminOnly, async (req, res) => {
   try {
     const items = await Item.find().lean();
@@ -24,15 +23,13 @@ router.get('/items', authRequired, adminOnly, async (req, res) => {
 router.post('/items', authRequired, adminOnly, async (req, res) => {
   try {
     const { name, type, basePrice, description } = req.body;
-    // Basic validation
     if (!name || !type || !basePrice) {
       return res.status(400).json({ error: 'Name, type, and basePrice are required' });
     }
     const item = await Item.create({ name, type, basePrice, description });
-    res.status(201).json(item); // Use 201 Created for new resources
+    res.status(201).json(item); 
   } catch (err) {
-    // Handle specific validation errors (like a duplicate name)
-    if (err.code === 11000) { // MongoDB duplicate key error
+    if (err.code === 11000) { 
       return res.status(400).json({ error: 'An item with this name already exists' });
     }
     console.error(err);
@@ -44,7 +41,6 @@ router.post('/items', authRequired, adminOnly, async (req, res) => {
 router.put('/items/:id', authRequired, adminOnly, async (req, res) => {
   try {
     const item = await Item.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    // Check if an item was actually found and updated
     if (!item) {
       return res.status(404).json({ error: 'Item not found' });
     }
@@ -59,7 +55,6 @@ router.put('/items/:id', authRequired, adminOnly, async (req, res) => {
 router.delete('/items/:id', authRequired, adminOnly, async (req, res) => {
   try {
     const item = await Item.findByIdAndDelete(req.params.id);
-    // Check if an item was actually found and deleted
     if (!item) {
       return res.status(404).json({ error: 'Item not found' });
     }
@@ -71,10 +66,7 @@ router.delete('/items/:id', authRequired, adminOnly, async (req, res) => {
 });
 
 
-// --- Recipes ---
-
 // GET /api/admin/recipes - list all recipes
-// Added adminOnly middleware.
 router.get('/recipes', authRequired, adminOnly, async (req, res) => {
   try {
     const recipes = await Recipe.find().populate('resultItem').lean();
@@ -89,7 +81,6 @@ router.get('/recipes', authRequired, adminOnly, async (req, res) => {
 router.post('/recipes', authRequired, adminOnly, async (req, res) => {
   try {
     const { name, combo, resultItemId } = req.body;
-    // Basic validation
     if (!name || !combo || !resultItemId) {
       return res.status(400).json({ error: 'Name, combo, and resultItemId are required' });
     }
@@ -97,7 +88,6 @@ router.post('/recipes', authRequired, adminOnly, async (req, res) => {
     const recipe = await Recipe.create({ ...req.body, resultItem: resultItemId, signature });
     res.status(201).json(recipe);
   } catch (err) {
-    // Handle specific validation errors (like a duplicate signature/name)
     if (err.code === 11000) {
       return res.status(400).json({ error: 'A recipe with this name or signature already exists' });
     }

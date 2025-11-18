@@ -1,17 +1,15 @@
+/* Import Gothic Fonts - This must be at the very top */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Import Gothic Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@400;700&display=swap');
-
 /* Global Gothic Theme */
 body {
   font-family: 'Sen', sans-serif;
-
   /* Deep arcane purple gradient */
   background: radial-gradient(circle at 30% 20%, #3b1e5a, #1b0f2e 60%, #0d0518);
-
   /* Subtle noise texture to avoid looking flat */
   background-blend-mode: overlay;
   background-attachment: fixed;

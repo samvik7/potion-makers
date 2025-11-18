@@ -5,7 +5,6 @@ const RecipeSchema = new Schema({
   name: { 
     type: String, 
     required: true,
-    // Ensures recipe names are unique.
     unique: true 
   },
   signature: { 
@@ -21,14 +20,12 @@ const RecipeSchema = new Schema({
   chance: { 
     type: Number, 
     default: 1,
-    // Enforces that the chance is a valid probability between 0 and 1.
     min: 0,
     max: 1
   },
   sellValue: { 
     type: Number, 
     default: 0,
-    // Prevents negative sell values.
     min: 0 
   },
   notes: { 

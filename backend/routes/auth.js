@@ -4,23 +4,25 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import Inventory from '../models/Inventory.js';
 import Item from '../models/Item.js';
+import { authRequired } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET;
-const TOKEN_EXPIRES = 60 * 60 * 24 * 7; // 7 days
+const TOKEN_EXPIRES_SECONDS = 60 * 60 * 24 * 7;
 
 function createToken(user) {
-  return jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: TOKEN_EXPIRES });
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET is not defined in the environment variables.');
+  }
+  return jwt.sign({ id: user._id, role: user.role }, secret, { expiresIn: TOKEN_EXPIRES_SECONDS });
 }
 
-// POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password are required' });
     }
-    // Add backend password validation
     if (password.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters long' });
     }
@@ -32,32 +34,28 @@ router.post('/register', async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await User.create({ username, passwordHash });
 
-    // Give starter items more robustly 
-    const starterItemNames = ['Water Vial', 'Herb']; 
+    const starterItemNames = ['Water Vial', 'Herb'];
     const starterItems = await Item.find({ name: { $in: starterItemNames } });
-    
     if (starterItems.length > 0) {
       const inventoryOps = starterItems.map(item => ({
         user: user._id,
         item: item._id,
-        // Use quantity to match the improved Inventory schema
-        quantity: item.name === 'Water Vial' ? 3 : 2, 
+        quantity: item.name === 'Water Vial' ? 3 : 2,
       }));
       await Inventory.insertMany(inventoryOps).catch(err => console.error("Error giving starter items:", err));
     }
 
     const token = createToken(user);
-    // Add Secure flag for production environments 
-    const cookieOptions = { 
-      httpOnly: true, 
+    const cookieOptions = {
+      httpOnly: true,
       sameSite: 'lax',
-      // The 'secure' flag ensures the cookie is only sent over HTTPS
-      secure: process.env.NODE_ENV === 'production' 
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: TOKEN_EXPIRES_SECONDS * 1000
     };
     res.cookie('token', token, cookieOptions);
 
     const safeUser = { id: user._id, username: user.username, role: user.role, gold: user.gold };
-    res.status(201).json({ user: safeUser }); 
+    res.status(201).json({ user: safeUser });
 
   } catch (err) {
     console.error('register', err);
@@ -65,13 +63,12 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// POST /api/auth/login
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username: new RegExp(`^${username}$`, 'i') });
     if (!user) {
-      return res.status(401).json({ error: 'Invalid username or password' }); 
+      return res.status(401).json({ error: 'Invalid username or password' });
     }
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
@@ -79,10 +76,11 @@ router.post('/login', async (req, res) => {
     }
 
     const token = createToken(user);
-    const cookieOptions = { 
-      httpOnly: true, 
+    const cookieOptions = {
+      httpOnly: true,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production' 
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: TOKEN_EXPIRES_SECONDS * 1000
     };
     res.cookie('token', token, cookieOptions);
 
@@ -95,26 +93,22 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// GET /api/auth/session - Checks if a user is currently logged in
-router.get('/session', async (req, res) => {
+router.get('/session', authRequired, async (req, res) => {
   try {
-    const token = req.cookies?.token;
-    if (!token) {
-      return res.json({ user: null });
-    }
-    const payload = jwt.verify(token, JWT_SECRET);
-    const user = await User.findById(payload.id).select('-passwordHash'); 
+    const user = await User.findById(req.userId).select('-passwordHash');
+    
     if (!user) {
-      return res.json({ user: null });
+      return res.status(404).json({ user: null });
     }
-    const safeUser = { id: user._id, username: user.username, role: user.role, gold: user.gold };
-    res.json({ user: safeUser });
+
+    res.json({ user });
+
   } catch (err) {
-    return res.json({ user: null });
+    console.error('session error', err);
+    res.status(500).json({ error: 'Server error checking session' });
   }
 });
 
-// POST /api/auth/logout
 router.post('/logout', (req, res) => {
   res.cookie('token', '', { httpOnly: true, expires: new Date(0) });
   res.status(200).json({ message: 'Logged out successfully' });

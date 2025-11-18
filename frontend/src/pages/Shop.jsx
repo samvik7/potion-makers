@@ -1,54 +1,64 @@
-import React, { useEffect, useState } from 'react'
-import api from '../api'
-import ItemCard from '../components/ItemCard'
+import React, { useEffect, useState } from 'react';
+import api from '../api';
+import { useAuth } from '../utils/authProvider';
 
-export default function Shop(){
-  const [items, setItems] = useState([])
+export default function Shop() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { fetchUser, showToast } = useAuth();
 
-  useEffect(()=>{ load() }, [])
+  useEffect(() => {
+    loadItems();
+  }, []);
 
-  async function load(){
-    try{ 
-      const res = await api.get('/admin/items')
-      setItems(res.data)
-    } catch(e){ console.error(e) }
+  async function loadItems() {
+    setLoading(true);
+    try {
+      const res = await api.get('/game/shop-items');
+      setItems(res.data);
+    } catch (e) {
+      console.error("Failed to load shop items:", e);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  async function buy(itemId){
-    try{ 
-      await api.post('/game/buy', { itemId, qty:1 }) 
-      alert('Purchased!')
-      load()
-    } catch(e){ 
-      alert('Purchase failed')
+  async function buy(itemId) {
+    try {
+      await api.post('/game/buy', { itemId, qty: 1 });
+      fetchUser();
+      showToast("Item purchased successfully!", "success");
+    } catch (e) {
+      showToast(e.response?.data?.error || 'Purchase failed', "error");
     }
+  }
+
+  if (loading) {
+    return <p className="text-center text-lg mt-10 text-white">Loading shop...</p>;
   }
 
   return (
     <div className="max-w-6xl mx-auto py-10 px-6">
-
-      <h1 className="text-center text-5xl font-extrabold text-purple-700 mb-10">
+      <h1 className="text-center text-5xl font-extrabold text-purple-300 mb-10 drop-shadow-lg">
         🛒 Arcane Shop
       </h1>
 
-      {items.length ? (
+      {items.length > 0 ? (
         <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {items.map(it => (
             <div key={it._id}
-              className="p-5 bg-white border-2 border-purple-400 rounded-xl shadow-md hover:shadow-purple-500 transition flex flex-col justify-between">
-
+              className="p-5 bg-white/10 backdrop-blur-md border border-purple-400/40 rounded-xl shadow-lg hover:shadow-purple-400/50 transition flex flex-col justify-between text-white">
               <div>
-                <h3 className="text-2xl font-bold text-purple-800">{it.name}</h3>
-                <p className="text-gray-700 text-sm mt-1">{it.description || "No description"}</p>
-              </div>
+                <h3 className="text-2xl font-bold text-purple-200">{it.name}</h3>
+                <p className="text-purple-300 text-sm mt-1">{it.description || "No description"}</p>
 
+              </div>
               <div className="mt-4">
-                <p className="text-lg font-semibold text-green-700 mb-3">
+                <p className="text-lg font-semibold text-yellow-300 mb-3">
                   💰 {it.basePrice} Gold
                 </p>
-
                 <button
-                  onClick={()=>buy(it._id)}
+                  onClick={() => buy(it._id)}
                   className="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-md transition">
                   Buy
                 </button>
@@ -57,9 +67,8 @@ export default function Shop(){
           ))}
         </div>
       ) : (
-        <p className="text-gray-600 text-center text-lg">The shop is empty...</p>
+        <p className="text-gray-300 text-center text-lg">The shop is currently empty.</p>
       )}
-
     </div>
-  )
+  );
 }

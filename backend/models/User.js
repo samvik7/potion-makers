@@ -8,7 +8,6 @@ const UserSchema = new Schema({
   gold: { 
     type: Number, 
     default: 50,
-    // Prevents a user's gold from going below zero.
     min: 0
   },
   discoveredRecipes: [{ type: Schema.Types.ObjectId, ref: 'Recipe' }]
