@@ -39,6 +39,20 @@ router.get('/shop-items', authRequired, async (req, res) => {
   }
 });
 
+router.get('/rankings', authRequired, async (req, res) => {
+  try {
+    const rankings = await User.find()
+      .sort({ gold: -1 })
+      .limit(10)
+      .select('username gold')
+      .lean();
+    res.json(rankings);
+  } catch (err) {
+    console.error('rankings', err);
+    res.status(500).json({ error: 'Server error fetching rankings' });
+  }
+});
+
 router.post('/craft', authRequired, async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
