@@ -47,6 +47,19 @@ export default function Header() {
         </NavLink>
 
         <NavLink 
+         to="/rankings"
+         className={({ isActive }) =>
+           isActive
+           ? "text-yellow-300 font-bold border-b-2 border-yellow-300 pb-1"
+           : "hover:text-purple-200 transition"
+          }
+>
+          Rankings
+         </NavLink>
+
+
+
+        <NavLink 
           to="/recipes" 
           className={({ isActive }) => 
             isActive 
@@ -55,7 +68,7 @@ export default function Header() {
           }
         >
           Recipe Book
-        </NavLink>
+        </NavLink>  
       </nav>
 
       <div className="ml-auto">
@@ -78,7 +91,7 @@ export default function Header() {
           >
             Login
           </Link>
-        )}
+        )}    
       </div>
     </header>
   );
