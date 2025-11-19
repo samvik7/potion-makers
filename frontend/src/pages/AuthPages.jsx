@@ -31,7 +31,6 @@ export default function AuthPage() {
     <div className="relative min-h-screen flex items-center justify-center 
       bg-gradient-to-br from-purple-800 via-purple-900 to-purple-950 overflow-hidden p-6">
       
-      {/* Ambient Glowing Orbs */}
       <div className="absolute w-96 h-96 bg-purple-600/40 rounded-full blur-3xl top-10 left-10 animate-pulse"></div>
       <div className="absolute w-80 h-80 bg-purple-400/30 rounded-full blur-3xl bottom-10 right-10 animate-pulse"></div>
 
@@ -44,7 +43,6 @@ export default function AuthPage() {
         </h2>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
-          {/* USERNAME */}
           <div>
             <label className="block text-purple-200 font-semibold mb-2">
               Username
@@ -63,7 +61,6 @@ export default function AuthPage() {
             />
           </div>
 
-          {/* PASSWORD */}
           <div>
             <label className="block text-purple-200 font-semibold mb-2">
               Password
@@ -91,7 +88,6 @@ export default function AuthPage() {
             </div>
           </div>
 
-          {/* BUTTON */}
           <button
             type="submit"
             className="w-full bg-purple-600 hover:bg-purple-700 
@@ -104,7 +100,6 @@ export default function AuthPage() {
           </button>
         </form>
 
-        {/* MODE SWITCH */}
         <div className="text-center mt-6">
           <p className="text-purple-200">
             {isLoginMode ? "Don't have an account?" : "Already have an account?"}

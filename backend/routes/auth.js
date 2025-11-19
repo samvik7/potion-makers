@@ -46,9 +46,10 @@ router.post('/register', async (req, res) => {
     }
 
     const token = createToken(user);
+    
     const cookieOptions = {
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       secure: process.env.NODE_ENV === 'production',
       maxAge: TOKEN_EXPIRES_SECONDS * 1000
     };
@@ -76,9 +77,10 @@ router.post('/login', async (req, res) => {
     }
 
     const token = createToken(user);
+
     const cookieOptions = {
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       secure: process.env.NODE_ENV === 'production',
       maxAge: TOKEN_EXPIRES_SECONDS * 1000
     };
@@ -110,7 +112,12 @@ router.get('/session', authRequired, async (req, res) => {
 });
 
 router.post('/logout', (req, res) => {
-  res.cookie('token', '', { httpOnly: true, expires: new Date(0) });
+  res.cookie('token', '', { 
+    httpOnly: true, 
+    expires: new Date(0),
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: process.env.NODE_ENV === 'production'
+  });
   res.status(200).json({ message: 'Logged out successfully' });
 });
 
