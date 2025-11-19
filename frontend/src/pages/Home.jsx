@@ -28,11 +28,16 @@ export default function Home() {
   }
 
   if (loading) {
-    return <div className="text-center text-lg mt-10">Loading your workshop...</div>;
+    return <div className="text-center text-lg mt-10 text-white">Loading your workshop...</div>;
   }
 
   return (
-    <div className="min-h-screen text-white py-10 px-6">
+    <div 
+      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed text-white py-10 px-6"
+      style={{ backgroundImage: "url('/images/backgrounds/home.jpg')" }}
+    >
+      <div className="bg-black/40 min-h-screen w-full fixed top-0 left-0 -z-10" />
+
       <h1 className="text-5xl font-bold text-center mb-6 drop-shadow-lg">
         🧪 Potion Makers — Cauldron
       </h1>

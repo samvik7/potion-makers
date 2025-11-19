@@ -50,7 +50,12 @@ export default function RecipeBook() {
   }
 
   return (
-    <div className="min-h-screen py-12 px-8 text-white">
+    <div 
+      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed text-white py-12 px-8"
+      style={{ backgroundImage: "url('/images/backgrounds/recipe.jpg')" }}
+    >
+      <div className="bg-black/40 min-h-screen w-full fixed top-0 left-0 -z-10" />
+
       <h2 className="text-5xl font-bold text-purple-200 mb-10 text-center drop-shadow-lg">
         📜 Arcane Recipe Grimoire
       </h2>
@@ -92,7 +97,7 @@ export default function RecipeBook() {
       ) : (
         <div className="text-center mt-20">
           <p className="text-purple-200 text-2xl font-bold mb-2">The Grimoire is Empty</p>
-          <p className="text-gray-400 text-lg">
+          <p className="text-purple-200 text-lg">
             Visit the Cauldron to experiment and discover new recipes!
           </p>
         </div>

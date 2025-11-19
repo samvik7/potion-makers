@@ -38,37 +38,43 @@ export default function Shop() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto py-10 px-6">
-      <h1 className="text-center text-5xl font-extrabold text-purple-300 mb-10 drop-shadow-lg">
-        🛒 Arcane Shop
-      </h1>
+    <div 
+      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed text-white py-10 px-6"
+      style={{ backgroundImage: "url('/images/backgrounds/shop.jpg')" }}
+    >
+      <div className="bg-black/40 min-h-screen w-full fixed top-0 left-0 -z-10" />
 
-      {items.length > 0 ? (
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {items.map(it => (
-            <div key={it._id}
-              className="p-5 bg-white/10 backdrop-blur-md border border-purple-400/40 rounded-xl shadow-lg hover:shadow-purple-400/50 transition flex flex-col justify-between text-white">
-              <div>
-                <h3 className="text-2xl font-bold text-purple-200">{it.name}</h3>
-                <p className="text-purple-300 text-sm mt-1">{it.description || "No description"}</p>
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-center text-5xl font-extrabold text-purple-300 mb-10 drop-shadow-lg">
+          🛒 Arcane Shop
+        </h1>
 
+        {items.length > 0 ? (
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {items.map(it => (
+              <div key={it._id}
+                className="p-5 bg-white/10 backdrop-blur-md border border-purple-400/40 rounded-xl shadow-lg hover:shadow-purple-400/50 transition flex flex-col justify-between text-white">
+                <div>
+                  <h3 className="text-2xl font-bold text-purple-200">{it.name}</h3>
+                  <p className="text-purple-300 text-sm mt-1">{it.description || "No description"}</p>
+                </div>
+                <div className="mt-4">
+                  <p className="text-lg font-semibold text-yellow-300 mb-3">
+                    💰 {it.basePrice} Gold
+                  </p>
+                  <button
+                    onClick={() => buy(it._id)}
+                    className="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-md transition">
+                    Buy
+                  </button>
+                </div>
               </div>
-              <div className="mt-4">
-                <p className="text-lg font-semibold text-yellow-300 mb-3">
-                  💰 {it.basePrice} Gold
-                </p>
-                <button
-                  onClick={() => buy(it._id)}
-                  className="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-md transition">
-                  Buy
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-gray-300 text-center text-lg">The shop is currently empty.</p>
-      )}
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-300 text-center text-lg">The shop is currently empty.</p>
+        )}
+      </div>
     </div>
   );
 }
