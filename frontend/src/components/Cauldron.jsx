@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import api from '../api';
 import { useAuth } from '../utils/authProvider';
+import ItemIcon from './ItemIcon';
 
 export default function Cauldron({ inventory = [], onCraftResult }) {
   const { showToast } = useAuth();
@@ -10,8 +11,10 @@ export default function Cauldron({ inventory = [], onCraftResult }) {
     setSelected(prev => {
       const next = { ...prev };
       next[itemId] = (next[itemId] || 0) + 1;
-      const inventoryItem = inventory.find(i => i.item._id === itemId);
+      
+      const inventoryItem = inventory.find(i => i.item && i.item._id === itemId);
       const ownedQuantity = inventoryItem ? inventoryItem.quantity : 0;
+      
       if (next[itemId] > ownedQuantity) {
         next[itemId] = ownedQuantity;
       }
@@ -62,28 +65,38 @@ export default function Cauldron({ inventory = [], onCraftResult }) {
       </h2>
 
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {inventory.map(inv => (
-          <div key={inv._id || inv.item._id}
-            className="bg-purple-900/40 border border-purple-500 rounded-xl p-4 text-white shadow-md hover:shadow-purple-400 transition">
-            
-            <div className="text-lg font-bold">{inv.item.name}</div>
-            <div className="text-sm opacity-80">Qty: {inv.quantity}</div>
+        {inventory.map(inv => {
+          if (!inv.item) return null;
 
-            <div className="flex items-center justify-center gap-3 mt-3">
-              <button
-                onClick={() => removeOne(inv.item._id)}
-                className="px-3 py-1 rounded-lg bg-purple-700 hover:bg-purple-600 text-white"
-              >-</button>
+          return (
+            <div key={inv._id || inv.item._id}
+              className="bg-purple-900/40 border border-purple-500 rounded-xl p-4 text-white shadow-md hover:shadow-purple-400 transition">
+              
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-3 p-2 bg-purple-900/30 rounded-full shadow-inner">
+                   <ItemIcon name={inv.item.name} image={inv.item.image} size="w-12 h-12" />
+                </div>
 
-              <span className="text-xl font-semibold">{selected[inv.item._id] || 0}</span>
+                <div className="text-lg font-bold">{inv.item.name}</div>
+                <div className="text-sm opacity-80">Qty: {inv.quantity}</div>
+              </div>
 
-              <button
-                onClick={() => addOne(inv.item._id)}
-                className="px-3 py-1 rounded-lg bg-purple-700 hover:bg-purple-600 text-white"
-              >+</button>
+              <div className="flex items-center justify-center gap-3 mt-3">
+                <button
+                  onClick={() => removeOne(inv.item._id)}
+                  className="px-3 py-1 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-bold"
+                >-</button>
+
+                <span className="text-xl font-semibold w-6 text-center">{selected[inv.item._id] || 0}</span>
+
+                <button
+                  onClick={() => addOne(inv.item._id)}
+                  className="px-3 py-1 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-bold"
+                >+</button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="flex justify-center mt-8">

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
 import { useAuth } from '../utils/authProvider';
+import ItemIcon from '../components/ItemIcon';
 
 export default function Inventory() {
   const [inventory, setInventory] = useState([]);
@@ -51,30 +52,38 @@ export default function Inventory() {
 
         {inventory.length > 0 ? (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {inventory.map(invItem => (
-              <div
-                key={invItem._id}
-                className="p-5 bg-white/10 backdrop-blur-md border border-purple-400/40 rounded-xl shadow-lg hover:shadow-purple-400/50 transition flex flex-col justify-between"
-              >
-                <div>
-                  <h3 className="text-2xl font-bold text-purple-200">{invItem.item.name}</h3>
-                  <p className="text-purple-300 text-sm mt-1">{invItem.item.description || "No description"}</p>
-                </div>
+            {inventory.map(invItem => {
+              if (!invItem.item) return null;
 
-                <div className="mt-4">
-                  <p className="text-lg font-semibold text-yellow-300 mb-3">
-                    Owned: {invItem.quantity}
-                  </p>
+              return (
+                <div
+                  key={invItem._id}
+                  className="p-5 bg-white/10 backdrop-blur-md border border-purple-400/40 rounded-xl shadow-lg hover:shadow-purple-400/50 transition flex flex-col justify-between"
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="mb-4 p-2 bg-purple-900/30 rounded-full shadow-inner">
+                       <ItemIcon name={invItem.item.name} image={invItem.item.image} size="w-16 h-16" />
+                    </div>
 
-                  <button
-                    onClick={() => sell(invItem)}
-                    className="w-full py-2 rounded-lg bg-yellow-600 hover:bg-yellow-500 text-white font-bold shadow-md transition"
-                  >
-                    Sell for {invItem.item.basePrice} Gold
-                  </button>
+                    <h3 className="text-2xl font-bold text-purple-200">{invItem.item.name}</h3>
+                    <p className="text-purple-300 text-sm mt-1">{invItem.item.description || "No description"}</p>
+                  </div>
+
+                  <div className="mt-4">
+                    <p className="text-lg font-semibold text-yellow-300 mb-3 text-center">
+                      Owned: {invItem.quantity}
+                    </p>
+
+                    <button
+                      onClick={() => sell(invItem)}
+                      className="w-full py-2 rounded-lg bg-yellow-600 hover:bg-yellow-500 text-white font-bold shadow-md transition"
+                    >
+                      Sell for {invItem.item.basePrice} Gold
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-gray-300 text-center text-lg">

@@ -53,11 +53,9 @@ export default function Header() {
            ? "text-yellow-300 font-bold border-b-2 border-yellow-300 pb-1"
            : "hover:text-purple-200 transition"
           }
->
+        >
           Rankings
-         </NavLink>
-
-
+        </NavLink>
 
         <NavLink 
           to="/recipes" 
@@ -69,6 +67,21 @@ export default function Header() {
         >
           Recipe Book
         </NavLink>  
+
+        {/*ADMIN LINK (Only visible if user is Admin)*/}
+        {user?.role === 'Admin' && (
+          <NavLink 
+            to="/admin" 
+            className={({ isActive }) => 
+              isActive 
+                ? "text-red-400 font-bold border-b-2 border-red-400 pb-1" 
+                : "text-red-300 hover:text-red-200 transition"
+            }
+          >
+            Admin Panel
+          </NavLink>
+        )}
+
       </nav>
 
       <div className="ml-auto">

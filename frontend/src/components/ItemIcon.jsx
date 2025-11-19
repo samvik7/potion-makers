@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 
-export default function ItemIcon({ name, size = "w-12 h-12", className = "" }) {
+export default function ItemIcon({ name, image, size = "w-12 h-12", className = "" }) {
   const [error, setError] = useState(false);
 
-  const filename = name ? name.toLowerCase().replace(/\s+/g, '-') : 'unknown';
-  
-  const src = `/images/items/${filename}.png`;
+  const src = image ? `/images/items/${image}` : '';
 
-  if (error) {
+  if (error || !image) {
     return (
-      <div className={`${size} ${className} bg-purple-900/50 rounded-lg flex items-center justify-center border border-purple-500/30 text-xs text-center overflow-hidden`} title={name}>
+      <div className={`${size} ${className} bg-purple-900/50 rounded-lg flex items-center justify-center border border-purple-500/30 text-xs text-center overflow-hidden p-1`} title={name}>
         {name ? name.substring(0, 2).toUpperCase() : "?"}
       </div>
     );

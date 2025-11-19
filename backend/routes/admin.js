@@ -2,11 +2,9 @@ import express from 'express';
 import { authRequired, adminOnly } from '../middleware/authMiddleware.js';
 import Item from '../models/Item.js';
 import Recipe from '../models/Recipe.js';
+import User from '../models/User.js'; 
 
-console.log("✅ admin.js loaded!");
 const router = express.Router();
-
-
 
 // GET /api/admin/items - list all items
 router.get('/items', authRequired, adminOnly, async (req, res) => {
@@ -27,9 +25,9 @@ router.post('/items', authRequired, adminOnly, async (req, res) => {
       return res.status(400).json({ error: 'Name, type, and basePrice are required' });
     }
     const item = await Item.create({ name, type, basePrice, description });
-    res.status(201).json(item); 
+    res.status(201).json(item);
   } catch (err) {
-    if (err.code === 11000) { 
+    if (err.code === 11000) {
       return res.status(400).json({ error: 'An item with this name already exists' });
     }
     console.error(err);
@@ -121,6 +119,32 @@ router.delete('/recipes/:id', authRequired, adminOnly, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error deleting recipe' });
+  }
+});
+
+
+// GET /api/admin/users - List all players
+router.get('/users', authRequired, adminOnly, async (req, res) => {
+  try {
+    const users = await User.find().select('-passwordHash').sort({ createdAt: -1 }).lean();
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error fetching users' });
+  }
+});
+
+// DELETE /api/admin/users/:id - Ban/Delete a player
+router.delete('/users/:id', authRequired, adminOnly, async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json({ ok: true, message: 'User deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error deleting user' });
   }
 });
 

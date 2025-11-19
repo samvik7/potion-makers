@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
 import { useAuth } from '../utils/authProvider';
+import ItemIcon from '../components/ItemIcon';
 
 export default function Shop() {
   const [items, setItems] = useState([]);
@@ -54,12 +55,18 @@ export default function Shop() {
             {items.map(it => (
               <div key={it._id}
                 className="p-5 bg-white/10 backdrop-blur-md border border-purple-400/40 rounded-xl shadow-lg hover:shadow-purple-400/50 transition flex flex-col justify-between text-white">
-                <div>
+                
+                <div className="flex flex-col items-center text-center">
+                  <div className="mb-4 p-2 bg-purple-900/30 rounded-full shadow-inner">
+                     <ItemIcon name={it.name} image={it.image} size="w-16 h-16" />
+                  </div>
+
                   <h3 className="text-2xl font-bold text-purple-200">{it.name}</h3>
                   <p className="text-purple-300 text-sm mt-1">{it.description || "No description"}</p>
                 </div>
+
                 <div className="mt-4">
-                  <p className="text-lg font-semibold text-yellow-300 mb-3">
+                  <p className="text-lg font-semibold text-yellow-300 mb-3 text-center">
                     💰 {it.basePrice} Gold
                   </p>
                   <button

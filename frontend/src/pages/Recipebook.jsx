@@ -76,7 +76,7 @@ export default function RecipeBook() {
 
                 <div className="space-y-2">
                   <p className="text-sm text-purple-200 font-semibold uppercase tracking-wider">Requires:</p>
-                  <ul className="space-y-1 text-gray-200">
+                  <ul className="space-y-1 text-purple-200">
                     {ingredients.map((ing, i) => (
                       <li key={i} className="flex items-center gap-2 bg-black/20 px-3 py-2 rounded-md">
                         <span className="text-purple-400">✦</span>
@@ -87,7 +87,7 @@ export default function RecipeBook() {
                   </ul>
                 </div>
 
-                <p className="text-sm italic text-gray-400 mt-4 border-t border-white/10 pt-3">
+                <p className="text-sm italic text-purple-200 mt-4 border-t border-white/10 pt-3">
                   {r.notes || "A powerful concoction."}
                 </p>
               </div>

@@ -55,12 +55,16 @@ export default function Home() {
           <h3 className="text-2xl font-semibold mb-4 text-center">Your Ingredients</h3>
           <ul className="space-y-2 max-h-96 overflow-y-auto">
             {gameState.inventory.length > 0 ? (
-              gameState.inventory.map(invItem => (
-                <li key={invItem.item._id} className="p-3 bg-purple-800/20 rounded-md flex justify-between items-center">
-                  <span>{invItem.item.name}</span>
-                  <span className="font-bold text-purple-200">x{invItem.quantity}</span>
-                </li>
-              ))
+              gameState.inventory.map(invItem => {
+                if (!invItem.item) return null;
+
+                return (
+                  <li key={invItem.item._id} className="p-3 bg-purple-800/20 rounded-md flex justify-between items-center">
+                    <span>{invItem.item.name}</span>
+                    <span className="font-bold text-purple-200">x{invItem.quantity}</span>
+                  </li>
+                );
+              })
             ) : (
               <p className="text-center text-gray-400 mt-4">Your inventory is empty.</p>
             )}
@@ -76,11 +80,15 @@ export default function Home() {
           <h3 className="text-2xl font-semibold mb-4 text-center">Discovered Recipes</h3>
           <ul className="space-y-2 max-h-96 overflow-y-auto">
             {gameState.discovered.length > 0 ? (
-              gameState.discovered.map(recipe => (
-                <li key={recipe._id} className="p-3 bg-purple-800/20 rounded-md">
-                  <strong className="text-purple-200">{recipe.name}</strong>
-                </li>
-              ))
+              gameState.discovered.map(recipe => {
+                if (!recipe) return null;
+                
+                return (
+                  <li key={recipe._id} className="p-3 bg-purple-800/20 rounded-md">
+                    <strong className="text-purple-200">{recipe.name}</strong>
+                  </li>
+                );
+              })
             ) : (
               <p className="text-center text-gray-400 mt-4">No recipes discovered yet.</p>
             )}
