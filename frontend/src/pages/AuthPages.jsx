@@ -66,7 +66,7 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-700 bg-transparent border-none outline-none hover:bg-transparent active:bg-transparent focus:bg-transparent"
+                className="absolute right-3 top-1 -y-1/2 text-purple-700 bg-transparent border-none outline-none hover:bg-transparent active:bg-transparent focus:bg-transparent"
               >
                 {showPassword ? "👁️" : "🙈"}
               </button>

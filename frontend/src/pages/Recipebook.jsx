@@ -3,22 +3,46 @@ import api from '../api';
 
 export default function RecipeBook() {
   const [recipes, setRecipes] = useState([]);
+  const [itemMap, setItemMap] = useState({}); 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadRecipes();
+    loadData();
   }, []);
 
-  async function loadRecipes() {
+  async function loadData() {
     setLoading(true);
     try {
-      const res = await api.get('/game/gamestate');
-      setRecipes(res.data.discovered || []);
+      const [gameStateRes, allItemsRes] = await Promise.all([
+        api.get('/game/gamestate'),
+        api.get('/game/shop-items')
+      ]);
+
+      setRecipes(gameStateRes.data.discovered || []);
+
+      const map = {};
+      allItemsRes.data.forEach(item => {
+        map[item._id] = item.name;
+      });
+      setItemMap(map);
+
     } catch (e) {
-      console.error(e);
+      console.error("Error loading recipe book:", e);
     } finally {
       setLoading(false);
     }
+  }
+
+  function parseIngredients(signature) {
+    if (!signature) return [];
+    
+    return signature.split('|').map(pair => {
+      const [id, qty] = pair.split(':'); 
+      return {
+        name: itemMap[id] || 'Mystery Ingredient', 
+        qty: qty
+      };
+    });
   }
 
   if (loading) {
@@ -33,37 +57,45 @@ export default function RecipeBook() {
 
       {recipes.length > 0 ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {recipes.map(r => (
-            <div
-              key={r._id}
-              className="bg-white/10 backdrop-blur-md border border-purple-400/40 rounded-xl shadow-lg p-6"
-            >
-              <h3 className="text-2xl font-extrabold text-purple-200 mb-3 tracking-wide">
-                Creates: {r.resultItem.name}
-              </h3>
+          {recipes.map(r => {
+            const ingredients = parseIngredients(r.signature);
 
-              {r.ingredients?.length > 0 ? (
-                <div>
-                  <p className="font-semibold mb-2 text-purple-300">Requires:</p>
-                  <ul className="mb-4 space-y-1 text-sm">
-                    {r.ingredients.map((ing, i) => (
-                      <li key={i} className="flex items-center gap-2">
+            return (
+              <div
+                key={r._id}
+                className="bg-white/10 backdrop-blur-md border border-purple-400/40 rounded-xl shadow-lg p-6 hover:border-purple-300 transition"
+              >
+                <h3 className="text-2xl font-extrabold text-yellow-300 mb-4 tracking-wide border-b border-white/10 pb-2">
+                  {r.name}
+                </h3>
+
+                <div className="space-y-2">
+                  <p className="text-sm text-purple-200 font-semibold uppercase tracking-wider">Requires:</p>
+                  <ul className="space-y-1 text-gray-200">
+                    {ingredients.map((ing, i) => (
+                      <li key={i} className="flex items-center gap-2 bg-black/20 px-3 py-2 rounded-md">
                         <span className="text-purple-400">✦</span>
-                        {ing.item.name} (x{ing.quantity})
+                        <span className="flex-1">{ing.name}</span>
+                        <span className="font-bold text-purple-300">x{ing.qty}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-              ) : (
-                <p className="text-sm italic text-gray-400">Ingredients unknown...</p>
-              )}
-            </div>
-          ))}
+
+                <p className="text-sm italic text-gray-400 mt-4 border-t border-white/10 pt-3">
+                  {r.notes || "A powerful concoction."}
+                </p>
+              </div>
+            );
+          })}
         </div>
       ) : (
-        <p className="text-center text-purple-300 text-xl">
-          You haven't discovered any recipes yet. Experiment at the cauldron!
-        </p>
+        <div className="text-center mt-20">
+          <p className="text-purple-200 text-2xl font-bold mb-2">The Grimoire is Empty</p>
+          <p className="text-gray-400 text-lg">
+            Visit the Cauldron to experiment and discover new recipes!
+          </p>
+        </div>
       )}
     </div>
   );
